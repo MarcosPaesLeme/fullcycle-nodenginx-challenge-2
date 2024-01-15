@@ -1,0 +1,41 @@
+services:
+  db:
+    build:
+      context: ./mysql
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql/volume:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - node-network
+
+  node:
+    restart: always
+    build:
+      context: ./node
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - node-network
+
+  nginx:
+    build:
+      context:
+        ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - 8080:80
+    depends_on:
+      - node
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge

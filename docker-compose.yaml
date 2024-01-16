@@ -2,24 +2,30 @@ services:
   db:
     build:
       context: ./mysql
-    restart: always
     tty: true
     volumes:
       - ./mysql/volume:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=nodedb
       - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
     networks:
       - node-network
 
   node:
-    restart: always
     build:
       context: ./node
+    volumes:
+      - ./node:/usr/src/app
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - node-network
 
@@ -28,7 +34,6 @@ services:
       context:
         ./nginx
     container_name: nginx
-    restart: always
     ports:
       - 8080:80
     depends_on:

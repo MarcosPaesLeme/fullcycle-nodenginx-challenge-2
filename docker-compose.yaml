@@ -21,6 +21,7 @@ services:
       context: ./node
     volumes:
       - ./node:/usr/src/app
+    entrypoint: sh -c "npm install && node index.js"
     ports:
       - "3000:3000"
     depends_on:
